@@ -1,0 +1,3 @@
+[submodule "ov-server"]
+	path = ov-server
+	url = https://github.com/gisogrimm/ov-server.git
