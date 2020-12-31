@@ -2,12 +2,13 @@
   "name": "@digitalstage/ov-router",
   "version": "0.0.1",
   "description": "Routing service to provide ov multicast processes",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "gypfile": true,
   "scripts": {
-    "prepare": "cd ov-server && make",
     "dev": "DEBUG=* nodemon --watch './src/**/*.ts' --exec 'ts-node' src/index.ts | pino-colada",
     "lint": "npx eslint ./src --ext .js,.ts",
-    "build": "tsc",
+    "prepare": "make -C libov",
+    "build": "source version.sh && node-gyp rebuild --verbose && tsc",
     "start": "tsc && node ./dist/index.js"
   },
   "repository": {
@@ -46,7 +47,9 @@
     "dotenv": "^8.2.0",
     "mongodb": "^3.6.3",
     "node": "^15.2.0",
+    "node-addon-api": "^3.1.0",
     "node-fetch": "^2.6.1",
+    "node-gyp": "^7.1.2",
     "pino": "^6.7.0",
     "pino-pretty": "^4.3.0",
     "teckos": "0.2.3"
