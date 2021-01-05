@@ -71,7 +71,21 @@ class MediasoupService {
     }
 
     public close = () => {
-        // TODO: clean up
+        Object.keys(this.localProducers).forEach(id => {
+            this.localProducers[id].close();
+        })
+        Object.keys(this.localConsumers).forEach(id => {
+            this.localConsumers[id].close();
+        })
+        Object.keys(this.transports.webrtc).forEach(id => {
+            this.transports.webrtc[id].close();
+        })
+        Object.keys(this.transports.plain).forEach(id => {
+            this.transports.plain[id].close();
+        })
+        this.mediasoupRouters.forEach(mediasoupRouter => {
+            mediasoupRouter.router.close();
+        })
     }
 
     public init = (): Promise<any> => {
@@ -92,7 +106,7 @@ class MediasoupService {
                 if (routers.length === 0) {
                     throw new Error('No mediasoup routers available');
                 }
-                routers.map((router) => this.mediasoupRouters.push({ router, numConnections: 0 }));
+                routers.map((router) => this.mediasoupRouters.push({router, numConnections: 0}));
                 this.initialized = true;
             });
     }

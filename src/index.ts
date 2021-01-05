@@ -7,6 +7,7 @@ import {getDefaultMediasoupConfig, getInitialRouter} from "./utils";
 import debug from "debug";
 import OvService from "./services/OvService";
 import MediasoupService from "./services/MediasoupService";
+import ITeckosClient from "teckos-client/dist/ITeckosClient";
 
 const info = debug("router");
 const warn = info.extend("warn");
@@ -15,6 +16,7 @@ const error = info.extend("error");
 
 let ovService: OvService;
 let mediasoupService: MediasoupService;
+let serverConnection: ITeckosClient;
 
 const startService = () => {
     return getInitialRouter()
@@ -22,7 +24,7 @@ const startService = () => {
             info("Using public IPv4 " + initialRouter.ipv4);
             info("Using public IPv6 " + initialRouter.ipv6);
 
-            const serverConnection = new TeckosClient(API_URL);
+            serverConnection = new TeckosClient(API_URL);
 
             const mediasoupConfig = getDefaultMediasoupConfig(initialRouter.ipv4);
 
@@ -63,3 +65,14 @@ info("Starting service...");
 startService()
     .then(() => info("Service started!"))
     .catch((err) => error(err));
+
+process.on('SIGTERM', () => {
+    console.info('Shutting down services...');
+    if (ovService)
+        ovService.close();
+    if (mediasoupService)
+        mediasoupService.close();
+    if (serverConnection)
+        serverConnection.close();
+    console.info('All services shut down.');
+});

@@ -14,6 +14,7 @@ interface Stage {
     damping: number;
 
     ovServer?: {
+        router?: string;
         ipv4: string;
         ipv6?: string;
         port: number;

@@ -35,7 +35,7 @@ ov_server_t::ov_server_t(int portno_, int prio, const std::string& group_, const
   endpoints.resize(255);
   jittermeasurement_thread =
       std::thread(&ov_server_t::jittermeasurement_service, this);
-  announce_thread = std::thread(&ov_server_t::announce_service, this);
+  //announce_thread = std::thread(&ov_server_t::announce_service, this);
 
   // Now start worker
   workerthread = std::thread(&ov_server_t::srv, this);
