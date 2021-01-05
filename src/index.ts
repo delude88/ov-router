@@ -61,11 +61,6 @@ const startService = () => {
         });
 }
 
-info("Starting service...");
-startService()
-    .then(() => info("Service started!"))
-    .catch((err) => error(err));
-
 process.on('SIGTERM', () => {
     console.info('Shutting down services...');
     if (ovService)
@@ -76,3 +71,8 @@ process.on('SIGTERM', () => {
         serverConnection.close();
     console.info('All services shut down.');
 });
+
+info("Starting service...");
+startService()
+    .then(() => info("Service started!"))
+    .catch((err) => error(err));
