@@ -11,6 +11,7 @@ export enum ServerRouterEvents {
     UN_MANAGE_STAGE = 'un-manage-stage',
 }
 export enum ClientRouterEvents {
+    RESOLVE_PRODUCER = 'resolve-producer',
     STAGE_MANAGED = 'stage-managed',
     STAGE_UN_MANAGED = 'stage-unmanaged'
 }

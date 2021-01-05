@@ -1,4 +1,4 @@
-const ovserver = require('./../build/Release/ovserver.node');
+const ovserver = require('../../../build/Release/ovserver.node');
 
 export interface OvServerT {
     stop(): void;

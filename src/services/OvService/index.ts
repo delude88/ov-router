@@ -1,7 +1,7 @@
 import ITeckosClient from "teckos-client/dist/ITeckosClient";
-import {ClientRouterEvents, ServerRouterEvents} from "../events";
-import Stage from "../model/Stage";
-import OvServer, {OvServerT} from "../ov-server";
+import {ClientRouterEvents, ServerRouterEvents} from "../../events";
+import Stage from "../../model/Stage";
+import OvServer, {OvServerT} from "./ov-server";
 
 class OvService {
     private readonly serverConnection: ITeckosClient;

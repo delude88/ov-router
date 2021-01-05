@@ -1,19 +1,19 @@
 {
-  "name": "@digitalstage/ov-router",
-  "version": "0.0.1",
-  "description": "Routing service to provide ov multicast processes",
-  "main": "dist/index.js",
+  "name": "@digitalstage/router",
+  "version": "0.0.2",
+  "description": "Routing service to provide ov and webrtc streaming",
+  "main": "index.js",
   "gypfile": true,
   "scripts": {
-    "postinstall": "make -C libov",
+    "postinstall": "source version.sh && make -C libov && node-gyp build",
     "dev": "DEBUG=* nodemon --watch './src/**/*.ts' --exec 'ts-node' src/index.ts",
     "lint": "npx eslint ./src --ext .js,.ts",
-    "build": "source version.sh && node-gyp build && tsc",
-    "start": "tsc && node ./dist/index.js"
+    "build": "NODE_ENV=production tsc",
+    "start": "DEBUG=* NODE_ENV=production node ./dist/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/digital-stage/router-distributor.git"
+    "url": "git+https://github.com/digital-stage/router.git"
   },
   "keywords": [
     "video",
@@ -24,10 +24,11 @@
   "author": "Tobias Hegemann <tobias.hegemann@googlemail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/digital-stage/router-distributor/issues"
+    "url": "https://github.com/digital-stage/router/issues"
   },
-  "homepage": "https://github.com/digital-stage/router-distributor#readme",
+  "homepage": "https://github.com/digital-stage/router#readme",
   "devDependencies": {
+    "@types/debug": "^4.1.5",
     "@types/cors": "^2.8.8",
     "@types/node": "^14.14.7",
     "@typescript-eslint/eslint-plugin": "^4.8.0",
@@ -43,16 +44,15 @@
   },
   "dependencies": {
     "@types/ws": "^7.4.0",
+    "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "isomorphic-ws": "^4.0.1",
+    "lodash": "^4.17.20",
     "mediasoup": "^3.6.30",
-    "mongodb": "^3.6.3",
     "node": "^15.2.0",
     "node-addon-api": "^3.1.0",
     "node-fetch": "^2.6.1",
     "node-gyp": "^7.1.2",
-    "pino": "^6.7.0",
-    "pino-pretty": "^4.3.0",
     "public-ip": "^4.0.3",
     "teckos": "^0.2.3",
     "teckos-client": "^0.1.2",
