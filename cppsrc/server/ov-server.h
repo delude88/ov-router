@@ -1,13 +1,20 @@
+#ifndef OV_SERVER_H
+#define OV_SERVER_H
+
 #include "callerlist.h"
 #include "common.h"
 #include "errmsg.h"
 #include "udpsocket.h"
 #include <condition_variable>
-#include <signal.h>
 #include <string.h>
 #include <thread>
 #include <vector>
 #include <queue>
+#include <signal.h>
+#include <curl/curl.h>
+
+// period time of participant list announcement, in ping periods:
+#define PARTICIPANTANNOUNCEPERIOD 20
 
 class latreport_t {
 public:
@@ -23,17 +30,16 @@ public:
 
 class ov_server_t : public endpoint_list_t {
 public:
-  ov_server_t(int portno, int prio, const std::string& group_);
+  ov_server_t(int portno, int prio, const std::string& group_, const std::string& stagename_);
   ~ov_server_t();
   int portno;
-  void srv();
   void announce_new_connection(stage_device_id_t cid, const ep_desc_t& ep);
   void announce_connection_lost(stage_device_id_t cid);
   void announce_latency(stage_device_id_t cid, double lmin, double lmean,
                         double lmax, uint32_t received, uint32_t lost);
   void set_lobbyurl(const std::string& url) { lobbyurl = url; };
   void set_roomname(const std::string& name) { roomname = name; };
-  void start();
+  void stop();
 
 private:
   void jittermeasurement_service();
@@ -44,6 +50,8 @@ private:
   std::thread logthread;
   void quitwatch();
   std::thread quitthread;
+  void srv();
+  std::thread workerthread;
   const int prio;
 
   secret_t secret;
@@ -59,3 +67,5 @@ private:
 
   std::string group;
 };
+
+#endif //OV_SERVER_H

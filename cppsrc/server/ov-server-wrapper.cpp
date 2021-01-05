@@ -6,8 +6,7 @@ Napi::Object OvServerWrapper::Init(Napi::Env env, Napi::Object exports) {
   Napi::HandleScope scope(env);
 
   Napi::Function func = DefineClass(env, "OvServerWrapper", {
-    InstanceMethod("hello", &OvServerWrapper::Hello),
-    InstanceMethod("start", &OvServerWrapper::Start),
+    InstanceMethod("stop", &OvServerWrapper::Stop),
   });
 
   constructor = Napi::Persistent(func);
@@ -23,8 +22,8 @@ OvServerWrapper::OvServerWrapper(const Napi::CallbackInfo& info) : Napi::ObjectW
 
   int length = info.Length();
 
-  if (length != 3) {
-    Napi::TypeError::New(env, "Three arguments expected").ThrowAsJavaScriptException();
+  if (length != 4) {
+    Napi::TypeError::New(env, "Four arguments expected").ThrowAsJavaScriptException();
   }
 
   if(!info[0].IsNumber()){
@@ -37,22 +36,16 @@ OvServerWrapper::OvServerWrapper(const Napi::CallbackInfo& info) : Napi::ObjectW
   Napi::Number portno = info[0].As<Napi::Number>();
   Napi::Number prio = info[1].As<Napi::Number>();
   Napi::String group = info[2].As<Napi::String>();
-  this->actualClass_ = new ov_server_t(portno.DoubleValue(), prio.DoubleValue(), group);
+  Napi::String name = info[3].As<Napi::String>();
+  this->actualClass_ = new ov_server_t(portno.DoubleValue(), prio.DoubleValue(), group, name);
 }
 
 ov_server_t* OvServerWrapper::GetInternalInstance() {
   return this->actualClass_;
 }
-
-Napi::Value OvServerWrapper::Hello(const Napi::CallbackInfo& info) {
+Napi::Value OvServerWrapper::Stop(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
-    Napi::String returnValue = Napi::String::New(env, "hello world");
-    return returnValue;
-}
-
-Napi::Value OvServerWrapper::Start(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env();
-    this->actualClass_->start();
-    Napi::String returnValue = Napi::String::New(env, "started");
+    this->actualClass_->stop();
+    Napi::String returnValue = Napi::String::New(env, "stopped");
     return returnValue;
 }

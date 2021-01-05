@@ -1,12 +1,11 @@
 const ovserver = require('./../build/Release/ovserver.node');
 
-export interface OvServer {
-    hello(): string;
-    start(): void;
+export interface OvServerT {
+    stop(): void;
 }
 
 const OvServer: {
-    new(port: number, prio: number, group: string): OvServer;
+    new(port: number, prio: number, group: string, name: string): OvServerT;
 } = ovserver.OvServerWrapper
 
 export default OvServer;

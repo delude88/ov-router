@@ -1,35 +1,44 @@
 #include "ov-server.h"
-#include "callerlist.h"
-#include "common.h"
-#include "errmsg.h"
-#include "udpsocket.h"
-#include <condition_variable>
-#include <signal.h>
-#include <string.h>
-#include <thread>
-
-#include <curl/curl.h>
 
 CURL* curl;
 
-// period time of participant list announcement, in ping periods:
-#define PARTICIPANTANNOUNCEPERIOD 20
-
 static bool quit_app(false);
 
-ov_server_t::ov_server_t(int portno_, int prio, const std::string& group_)
+ov_server_t::ov_server_t(int portno_, int prio, const std::string& group_, const std::string& stagename_)
     : portno(portno_), prio(prio), secret(1234), socket(secret), runsession(true),
-      roomname("lakeview"), lobbyurl("http://localhost"),
+      roomname(stagename_), lobbyurl("http://oldbox.orlandoviols.com"),
       serverjitter(-1), group(group_)
 {
-  endpoints.resize(255);
+  // Init curl
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  curl = curl_easy_init();
+  if(!curl)
+        throw ErrMsg("Unable to initialize curl.");
+
+  // Init chrono and seed
+  std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
+  std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
+  unsigned int seed(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+          .count());
+  seed += portno;
+  // initialize random generator:
+  srandom(seed);
+
   socket.set_timeout_usec(100000);
   portno = socket.bind(portno);
+
   logthread = std::thread(&ov_server_t::ping_and_callerlist_service, this);
   quitthread = std::thread(&ov_server_t::quitwatch, this);
-  announce_thread = std::thread(&ov_server_t::announce_service, this);
+
+  // OV box related
+  endpoints.resize(255);
   jittermeasurement_thread =
       std::thread(&ov_server_t::jittermeasurement_service, this);
+  announce_thread = std::thread(&ov_server_t::announce_service, this);
+
+  // Now start worker
+  workerthread = std::thread(&ov_server_t::srv, this);
 }
 
 ov_server_t::~ov_server_t()
@@ -37,6 +46,7 @@ ov_server_t::~ov_server_t()
   runsession = false;
   logthread.join();
   quitthread.join();
+  workerthread.join();
 }
 
 void ov_server_t::quitwatch()
@@ -44,6 +54,8 @@ void ov_server_t::quitwatch()
   while(!quit_app)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   runsession = false;
+  curl_easy_cleanup(curl);
+  curl_global_cleanup();
   socket.close();
 }
 
@@ -278,58 +290,7 @@ void ov_server_t::jittermeasurement_service()
   }
 }
 
-static void sighandler(int sig)
+void ov_server_t::stop()
 {
-  quit_app = true;
+    quit_app = true;
 }
-
-void ov_server_t::start()
-{
-  std::chrono::high_resolution_clock::time_point start(
-  std::chrono::high_resolution_clock::now());
-  signal(SIGABRT, &sighandler);
-  signal(SIGTERM, &sighandler);
-  signal(SIGINT, &sighandler);
-  try {
-      curl_global_init(CURL_GLOBAL_DEFAULT);
-      curl = curl_easy_init();
-      if(!curl)
-        throw ErrMsg("Unable to initialize curl.");
-      int portno(0);
-      int prio(55);
-      std::string roomname;
-      std::string lobby("http://oldbox.orlandoviols.com");
-      std::string group;
-      const char* options = "p:qr:hvn:l:g:";
-      struct option long_options[] = {
-          {"rtprio", 1, 0, 'r'},   {"quiet", 0, 0, 'q'}, {"port", 1, 0, 'p'},
-          {"verbose", 0, 0, 'v'},  {"help", 0, 0, 'h'},  {"name", 1, 0, 'n'},
-          {"lobbyurl", 1, 0, 'l'}, {"group", 1, 0, 'g'}, {0, 0, 0, 0}};
-      std::chrono::high_resolution_clock::time_point end(
-          std::chrono::high_resolution_clock::now());
-      unsigned int seed(
-          std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
-              .count());
-      seed += portno;
-      // initialize random generator:
-      srandom(seed);
-      ov_server_t rec(portno, prio, group);
-      if(!roomname.empty())
-        rec.set_roomname(roomname);
-      if(!lobby.empty())
-        rec.set_lobbyurl(lobby);
-      rec.srv();
-      curl_easy_cleanup(curl);
-      curl_global_cleanup();
-    }
-    catch(const std::exception& e) {
-      std::cerr << e.what() << std::endl;
-    }
-}
-
-
-/*
- * Local Variables:
- * compile-command: "make -C .."
- * End:
- */
